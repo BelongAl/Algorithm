@@ -69,6 +69,16 @@ DataType StackTop(Stack *ps)//获得栈顶
   return ps->array[(ps->size)-1];
 }
 
+void StackDestary(Stack *ps)//摧毁
+{
+  assert(ps);
+  while(ps->size--)
+  {
+    free(ps->array);
+  }
+  free(ps);
+}
+
 int main()
 {
   Stack p;
