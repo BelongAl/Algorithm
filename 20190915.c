@@ -72,11 +72,12 @@ DataType StackTop(Stack *ps)//获得栈顶
 void StackDestary(Stack *ps)//摧毁
 {
   assert(ps);
-  while(ps->size--)
+  if(ps->array)
   {
     free(ps->array);
+    ps->capacity = 0;
+    ps->size = 0;
   }
-  free(ps);
 }
 
 int main()
