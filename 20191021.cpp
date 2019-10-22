@@ -4,7 +4,7 @@
 #include<algorithm>
 using namespace std;
 
-//method one : Violence algorithm
+// Violence algorithm
 /*
 class Solution {
 public:
@@ -68,7 +68,9 @@ public:
 	}
 };
 */ 
+
 //Central expansion method
+/*
 class Solution {
 public:
 	string longestPalindrome(string s)
@@ -103,6 +105,49 @@ public:
 		return R - L - 1;
 	}
 };
+*/
+
+//dynamic programming
+class Solution {
+public:
+	string longestPalindrome(string s) {
+		int size = s.size();
+		if (size < 1)
+		{
+			return s;
+		}
+		bool **arr = new bool*[size];//定义二维数组
+		for (int i = 0; i < size; i++)
+		{
+			*(arr + i) = new bool[size];
+		}
+		int length = 1;
+		int index = 0;
+		for (int i = 0; i < size; i++)
+		{
+			arr[i][i] = true;
+			for (int j = 0; j < i; j++)
+			{
+				if (s[i] == s[j] && (i - j == 1 || arr[j + 1][i - 1]))
+				{
+					arr[j][i] = true;
+					if ((i - j + 1) > length)
+					{
+						length = i - j + 1;
+						index = j;
+					}
+				}
+				else
+				{
+					arr[j][i] = false;
+				}
+			}
+		}
+		delete[]arr;
+		return s.substr(index, length);
+	}
+};
+
 
 int main()
 {
