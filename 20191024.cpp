@@ -12,9 +12,11 @@ public:
 		}
 		int count = nums.size() - 1;
 		bool*ptr = new bool[count--];
+		int t = nums.size() - 1;
 		if (nums[count] > 0)
 		{
-			ptr[count--] = true;
+			ptr[count] = true;
+			t = count--;
 		}
 		else
 		{
@@ -23,25 +25,14 @@ public:
 		for (int i = count; i >= 0; i--)
 		{
 			int tmp = nums[i];
-			if ((i + tmp) >= nums.size() - 1)
+			if ((i + tmp) >= t)
 			{
 				ptr[i] = true;
+				t = i;
 			}
 			else
 			{
-				int j = 1;
-				for (j; j <= tmp; j++)
-				{
-					if (ptr[i + j] == true)
-					{
-						ptr[i] = true;
-						break;
-					}
-				}
-				if (j > tmp)
-				{
-					ptr[i] = false;
-				}
+				ptr[i] = false;
 			}
 		}
 		return ptr[0];
@@ -49,8 +40,8 @@ public:
 };
 int main()
 {
-	int arr[] = { 2, 3, 1, 0, 4 };
-	vector<int> v(arr, arr + 5);
+	int arr[] = { 2, 0, 0 };
+	vector<int> v(arr, arr + 3);
 	Solution s;
 	cout << s.canJump(v) << endl;
 	system("pause");
