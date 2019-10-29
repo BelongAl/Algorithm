@@ -16,7 +16,7 @@ struct TreeNode {
 class Solution {
 	stack<TreeNode*> s;
 public:
-	//method 1
+	//method 栈的反后序遍历
 	vector<int> postorderTraversal(TreeNode* root) {
 		vector<int> res;
 		if (root == nullptr)
@@ -47,23 +47,24 @@ public:
 		return res;
 	}
 
-	//method 2
+	//method 2 递归
 	vector<int> postorderTraversal2(TreeNode *root) {
 		vector<int> res;
 		if (root == nullptr)
 		{
 			return res;
 		}
-		postorderTraversal(root->left);
-		postorderTraversal(root->right);
+		postorderTraversal(root->left);//访问左子树
+		postorderTraversal(root->right);//访问右子树
 		res.push_back(root->val);
 		return res;
 	}
-	//method 3
+
+	//method 3 栈的后序遍历
 	vector<int> postorderTraversal3(TreeNode* root) {
 		stack<TreeNode *> s;
-		TreeNode *cur = root;
-		TreeNode *last = NULL;
+		TreeNode *cur = root;//用来标记需要入栈的节点
+		TreeNode *last = NULL;//用来标记上一个出栈的节点
 		vector<int>res;
 		while (cur != NULL || !s.empty()) {
 			while (cur != NULL) {
