@@ -1,165 +1,153 @@
 #pragma once
 
-#include<stdlib.h>
 #include<iostream>
 
 using namespace std;
 
-namespace wr {
+namespace wr
 
+{
 	template<class T>
-	class ListNode //定义节点类
+	class listNode
 	{
 	public:
 		T m_val;
-		ListNode *m_prev;
-		ListNode *m_next;
-		ListNode(const T &val = T()) :
-			m_next(nullptr),
-			m_prev(nullptr),
-			m_val(val)
+		listNode *m_left;
+		listNode *m_right;
+		listNode(const T &x = T()) :
+			m_val(x),
+			m_left(nullptr),
+			m_right(nullptr)
 		{}
 	};
 
 	template<class T>
-	class list//链表类
+	class list
 	{
-		ListNode<T> *m_head;
-		//构建一个头
-		void createHead()
+		listNode<T> *m_head;
+		void CreatHead()
 		{
-			m_head = new ListNode<T>;
-			m_head->m_next = m_head;
-			m_head->m_prev = m_head;
+			m_head = new listNode<T>;
+			m_head->m_left = m_head;
+			m_head->m_right = m_head;
+			m_head->m_val = 0;
 		}
-
 	public:
 		class iterator//迭代器类
 		{
 		public:
-
-			ListNode<T> *m_pos;
-
-			iterator(ListNode<T> *val = nullptr) ://
-				m_pos(val)
+			listNode<T> *m_pos;
+			iterator(listNode<T> *p = nullptr) :
+				m_pos(p)
 			{}
 
-			T & operator*()const
+			T& operator*()const//解引用
 			{
 				return m_pos->m_val;
 			}
 
-			T * operator->()const
+			T* operator->()const//返回地址
 			{
 				return &m_pos->m_val;
 			}
 
-			iterator operator++()//在前
+			iterator operator++()
 			{
-				m_pos = m_pos->m_next;
+				m_pos = m_pos->m_left;
 				return *this;
 			}
 
-			iterator operator++(int k)//在后
+			iterator operator++(int k)
 			{
 				iterator tmp = *this;
-				m_pos = m_pos->m_next;
+				m_pos = m_pos->m_left;
 				return tmp;
 			}
 
-			iterator operator--()//在前
+			iterator operator--()
 			{
-				m_pos = m_pos->m_prev;
+				m_pos = m_pos->m_right;
 				return *this;
 			}
 
-			iterator operator--(int k)//在后
+			iterator operator--(int k)
 			{
 				iterator tmp = *this;
-				m_pos = m_pos->m_prev;
+				m_pos = m_pos->m_right;
 				return tmp;
 			}
 
-			bool operator==(const iterator & ci)const
+			bool operator==(const iterator& ci)const
 			{
-				return m_pos == ci.m_pos;;
+				return m_pos == ci.m_pos;
 			}
 
-			bool operator!=(const iterator & ci)const
+			bool operator!=(const iterator& ci)const
 			{
 				return m_pos != ci.m_pos;
 			}
 		};
 
-		List()//无参构造
+		list()
 		{
-			createHead();
+			CreatHead();
 		}
 
-		list(iterator start, iterator finish)
+		list(int n, const T &val = T())
 		{
-			createHead();
-			insert(end(), start, finish);
-		}
-
-		list(int n, const T&val = T())
-		{
-			createHead();
+			CreatHead();
 			for (int i = 0; i < n; i++)
 			{
 				push_back(val);
 			}
 		}
 
+		list(iterator start, iterator finish)
+		{
+			CreatHead();
+			insert(end(), start, finish);
+		}
+
 		list(list<T> &l)
 		{
-			createHead();
-			insert(end(), l.begin(),l.end());
+			CreatHead();
+			insert(end(), l.begin(), l.end());
+		}
+
+		void push_front(const T &val)
+		{
+			insert(begin(), val);
 		}
 
 		void push_back(const T &val)
 		{
 			insert(end(), val);
 		}
-		void push_front(const T &val)
-		{
-			insert(begin(), val);
-		}
-
-		void pop_back()
-		{
-			erase(--end());
-		}
-		void pop_front()
-		{
-			erase(begin());
-		}
 
 		iterator insert(iterator pos, const T &val)
 		{
-			ListNode<T>*cur = new ListNode<T>;
-			ListNode<T>*npos = pos.m_pos;
+			listNode<T> *cur = new listNode<T>;
+			listNode<T> *npos = pos.m_pos;
 			cur->m_val = val;
-			cur->m_prev = npos->m_prev;
-			cur->m_prev->m_next = cur;
-			cur->m_next = npos;
-			npos->m_prev = cur;
+			cur->m_left = npos->m_left;
+			cur->m_left->m_right = cur;
+			cur->m_right = npos;
+			npos->m_left = cur;
 			return cur;
 		}
 
-		iterator insert(iterator pos, T * start, T * finish)//插入数组
+		iterator insert(iterator pos, T *start, T *finish)
 		{
-			T *tmp;
 			iterator tmpit = --pos;
 			pos++;
-			for (tmp = start ; tmp != finish; tmp++)
+			for (T *tmp = start; tmp != finish; tmp++)
 			{
 				insert(pos, *tmp);
 			}
 			return ++tmpit;
 		}
 
-		iterator insert(iterator pos, iterator start, iterator end)//插入一段链表
+		iterator insert(iterator pos, iterator start, iterator end)
 		{
 			iterator tmp;
 			iterator tmpit = --pos;
@@ -173,8 +161,8 @@ namespace wr {
 
 		iterator erase(iterator pos)
 		{
-			ListNode<T> * npos = pos.m_pos;
-			ListNode<T> * res = npos->m_next;
+			listNode<T> * npos = pos.m_pos;
+			listNode<T> * res = npos->m_next;
 			npos->m_next->m_prev = npos->m_prev;
 			npos->m_prev->m_next = npos->m_next;
 			delete npos;
@@ -191,26 +179,25 @@ namespace wr {
 			return finish;
 		}
 
-		~list()
-		{
-			erase(begin(),end());
-			delete m_head;
-		}
-
-		void clear()
-		{
-			erase(begin(), end());
-		}
-
-		
-
 		iterator begin()
 		{
-			return m_head->m_next;
+			return m_head->m_left;
 		}
+
 		iterator end()
 		{
 			return m_head;
 		}
+
+		void pop_back()
+		{
+			erase(--end());
+		}
+
+		void pop_front()
+		{
+			erase(begin());
+		}
 	};
+
 }
