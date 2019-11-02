@@ -30,6 +30,7 @@ public:
 		p = nullptr;
 		return assist::GetSum();	
 	}
+};
 
 	/*
 	int Sum_Solution(int n) {
