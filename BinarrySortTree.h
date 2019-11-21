@@ -1,65 +1,65 @@
 #pragma once
+#include<vector>
+#include<stack>
+
+using namespace std;
 
 namespace wr
 {
-
-	template <class T>
+	template<class T>
 	class TreeNode
 	{
-		T m_data;
-		TreeNode<T> *m_left;
-		TreeNode<T> *m_right;
+		T m_val;
+		TreeNode *m_left;
+		TreeNode *m_right;
 	public:
-		TreeNode(const T& val = T()) :
-			m_data(val),
+		TreeNode(T val) :
+			m_val(val),
 			m_left(nullptr),
 			m_right(nullptr)
 		{}
 
-		template<class T>//给模板类设置友元
-		friend class BinarySortTree;
+		template<class T>
+		friend class binSortTree;
 	};
 
-	template <class T>
-	class BinarySortTree
+	template<class T>
+	class binSortTree
 	{
 		TreeNode<T> *m_root;
 	public:
-		BinarySortTree() :
+		binSortTree() :
 			m_root(nullptr)
 		{}
 
-		bool insert(const T &val)
+		bool insert(T val)
 		{
-			if (m_root == nullptr)
+			if (m_root == nullptr)//If m_root is equal to null
 			{
 				m_root = new TreeNode<T>(val);
 				return true;
 			}
-
+			TreeNode<T> *pre = m_root;
 			TreeNode<T> *cur = m_root;
-			TreeNode<T> *pre = nullptr;
-
-			while (cur)
+			while (cur)//Find the point to insert
 			{
-				if (val < cur->m_data)
+				if (cur->m_val > val)//Vale is smaller
 				{
 					pre = cur;
 					cur = cur->m_left;
 				}
-				else if (val > cur->m_data)
+				else if (cur->m_val < val)//Vale is biger
 				{
 					pre = cur;
 					cur = cur->m_right;
 				}
-				else
+				else//If the point to be iserted aleardy exit 
 				{
 					return false;
 				}
 			}
-
-			cur = new TreeNode<T>(val);
-			if (val < pre->m_data)
+			cur = new TreeNode<T>(val);//insert
+			if (val < pre->m_val)
 			{
 				pre->m_left = cur;
 			}
@@ -67,28 +67,22 @@ namespace wr
 			{
 				pre->m_right = cur;
 			}
-
 			return true;
 		}
 
-		bool erase(const T &val)
+		bool erase(T val)
 		{
-			if (m_root == nullptr)
+			//Find this vale
+			TreeNode<T> *pre = m_root;//Mark the previous
+			TreeNode<T> *cur = m_root;//Mark vale to delte
+			while (cur)
 			{
-				return false;
-			}
-
-			TreeNode<T> *cur = m_root;//标记需要删除的元素
-			TreeNode<T> *pre = nullptr;//标记需要删除元素的父亲
-
-			while (cur)//查找需要删除的元素
-			{
-				if (val < cur->m_data)
+				if (cur->m_val > val)
 				{
 					pre = cur;
 					cur = cur->m_left;
 				}
-				else if (val > cur->m_data)
+				else if (cur->m_val < val)
 				{
 					pre = cur;
 					cur = cur->m_right;
@@ -98,36 +92,33 @@ namespace wr
 					break;
 				}
 			}
-
-			if (cur == nullptr)//若不存在
+			if (cur == nullptr)//the value does not exist
 			{
 				return false;
 			}
 
-			if (cur->m_left && cur->m_right)//需要删除的元素其左右子树都有元素
+			if (cur->m_left && cur->m_right)//if left and right nodes exist
 			{
-				TreeNode<T> *cur2 = cur->m_left;//找到进位的元素
-				TreeNode<T> *pre2 = cur;//标记需要进位的元素上一个元素
-				while (cur2->m_right)
+				TreeNode<T> *pre2 = cur;//previous value
+				TreeNode<T> *cur2 = cur->m_left;//replace value
+				if (cur2->m_right)
 				{
-					pre2 = cur2;
-					cur2 = cur2->m_right;
-				}
-				if (cur->m_left == cur2)//需要进位的元素就是删除元素的直接左子树
-				{
-					if (pre->m_data > val)
+					while (cur2->m_right)//find the replace value
 					{
-						pre->m_left = cur2;
+						pre2 = cur2;
+						cur2 = cur2->m_right;
 					}
-					else
-					{
-						pre->m_right = cur2;
-					}
-				}
-				else//需要进位的元素是需要删除元素的左子树中的最大值
-				{
 					pre2->m_right = cur2->m_left;
-					if (pre->m_data > val)
+					cur2->m_left = cur->m_left;
+				}
+				cur2->m_right = cur->m_right;
+				if (pre == cur)
+				{
+					m_root = cur2;
+				}
+				else
+				{
+					if (pre->m_val > val)
 					{
 						pre->m_left = cur2;
 					}
@@ -135,36 +126,70 @@ namespace wr
 					{
 						pre->m_right = cur2;
 					}
-					cur2->m_left = cur->m_left;
-					cur2->m_right = cur->m_right;
 				}
 			}
-			else if (cur->m_left)//需要删除的元素只有左子树上有元素
+			else if (cur->m_left)//Only the left nodes exit
 			{
-				if (pre->m_data > val)
+				if (cur == pre)
 				{
-					pre->m_left = cur->m_left;
+					m_root = m_root->m_left;
 				}
 				else
 				{
-					pre->m_right = cur->m_left;
+					if (pre->m_val > val)
+					{
+						pre->m_left = cur->m_left;
+					}
+					else
+					{
+						pre->m_right = cur->m_left;
+					}
 				}
 			}
-			else//需要删除的元素只有在右子树上有元素或两个子树均没有元素
+			else//Only the right nodes exit or left and right nodes do oot esist
 			{
-				if (pre->m_data > val)
+				if (pre == cur)
 				{
-					pre->m_left = cur->m_right;
+					m_root = m_root->m_right;
 				}
 				else
 				{
-					pre->m_right = cur->m_right;
+					if (pre->m_val > val)
+					{
+						pre->m_left = cur->m_right;
+					}
+					else
+					{
+						pre->m_right = cur->m_right;
+					}
 				}
 			}
 			delete cur;
-			cur = nullptr;
-			return true;
 		}
+
+		vector<T> inorder()
+		{
+			vector<T> v;
+			stack<TreeNode<T>*> s;
+			TreeNode<T>* cur = m_root;
+			while (cur || !s.empty())
+			{
+				while (cur)
+				{
+					s.push(cur);
+					cur = cur->m_left;
+				}
+				TreeNode<T> *tmp = s.top();
+				s.pop();
+				if (tmp)
+				{
+					v.push_back(tmp->m_val);
+					cur = tmp->m_right;
+				}
+			}
+			return v;
+		}
+
 	};
 
 }
