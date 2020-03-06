@@ -10,8 +10,8 @@ namespace wr
 	{
 		BLACK,
 		RED,
+		EMPTY,
 	};
-
 
 	//红黑树每个节点的结构
 	template<class T>
@@ -192,7 +192,8 @@ namespace wr
 			{
 				if (dad->m_left == nullptr || dad->m_right == nullptr)
 				{
-					//缺黑调整
+					RBTreeNode<T> *path = dad->m_parent;
+					LockBlackNode(path);//缺黑调整
 				}
 				//需要找到代替的点
 				else
@@ -239,14 +240,14 @@ namespace wr
 						RBTreeNode<T>*parent = areplace->m_parent;//记录被替换节点的路径
 						if (areplace == dad->m_left)//如果后继不是被删除节点的左子树，那么它一定是某个节点的左子树
 						{
-							dad->m_left = areplace-;
+							dad->m_left = nullptr;
 						}
 						else
 						{
 							areplace->m_parent->m_left = nullptr;
 						}
 						//缺黑调整
-
+						LockBlackNode(parent);
 					}
 			
 				}
@@ -332,11 +333,184 @@ namespace wr
 							areplace->m_parent->m_left = nullptr;
 						}
 						//缺黑调整
-
+						LockBlackNode(parent);
 					}
 				}
 			}
 			return true;
+		}
+
+		//缺黑调整
+		void LockBlackNode(RBTreeNode<T> *path)
+		{
+			RBTreeNode<T>* cur = path;
+			RBTreeNode<T>* pre = nullptr;
+
+			//因为这条路径缺少了一个黑色节点，所以需要将其他路径均缺少一个节点
+			//我们在这里寻找他这条路径上的所有子树，将这些子树的一个黑色节点染成红色。
+			while (1)
+			{
+				if (cur->m_left && cur->m_left != pre)//如果这条路径存在左子树，则将其左子树的一个黑色节点变红
+				{
+					//寻找其左子树的黑色节点，并将其变红
+					ChangeColor(cur->m_left);
+				}
+				else if(cur->m_right && cur->m_right != pre)//如果这条路径存在右子树，则将其右子树的一个黑色节点变红
+				{
+					//寻找其右子树的黑色节点，并将其变红
+					ChangeColor(cur->m_right);
+				}
+				pre = cur;
+				cur = cur->m_parent;
+			}
+			m_head->m_parent->m_colour = BLACK;
+		}
+
+		//寻找黑色节点，然后调用调整函数
+		void ChangeColor(RBTreeNode<T> *cur)
+		{
+			if (cur->m_colour == BLACK)
+			{
+				//找到了黑色节点，进行调整
+				cur->m_colour = RED;
+				AdjustColor(cur);
+				return;
+			}
+			else
+			{
+				if (cur->m_left)
+				{
+					ChangeColor(cur->m_left);
+				}
+				if (cur->m_right)
+				{
+					ChangeColor(cur->m_right);
+				}
+			}
+		}
+
+		void AdjustColor(RBTreeNode<T> *cur)
+		{
+			//找到其左右节点的颜色
+			COLOR leftcolor = BLACK;
+			COLOR rightcolor = BLACK;
+			if (cur->m_left->m_colour == RED)
+			{
+				leftcolor = RED;
+			}
+			if (cur->m_right->m_colour == RED)
+			{
+				rightcolor = RED;
+			}
+			
+			//函数指针数组，存放这六种处理方式
+			void((*adjust)[6])(RBTreeNode<T> *) = { Bbb,Brr,Brb,Rbb,Rrr,Rrb };
+
+			//如果父亲节点为黑色
+			if (cur->m_parent->m_left == BLACK)
+			{
+				if (leftcolor == BLACK && rightcolor == BLACK)
+				{
+					//方法一
+					adjust[0](cur);
+				}
+				else if (leftcolor == RED && rightcolor == RED)
+				{
+					//方法二
+					adjust[1](cur);
+				}
+				else
+				{
+					adjust[2](cur);//方法三
+				}
+			}
+			else
+			{
+				if (leftcolor == BLACK && rightcolor == BLACK)
+				{
+					adjust[4](cur);//方法四
+				}
+				else if (leftcolor == RED && rightcolor == RED)
+				{
+					adjust[5](cur);//方法五
+				}
+				else
+				{
+					adjust[6](cur);//方法六
+				}
+			}
+		}
+
+		//六种处理函数
+		void Bbb(RBTreeNode<T> *cur)
+		{}
+		void Brr(RBTreeNode<T> *cur)
+		{
+			if (cur->m_parent->m_left = cur)
+			{
+				Lrotate(cur);
+				cur = cur->m_parent;
+				Rrotate(cur->m_parent);
+				cur->m_left->m_colour = BLACK;
+			}
+			else
+			{
+				Rrotate(cur);
+				cur = cur->m_parent;
+				Lrotate(cur->m_parent);
+				cur->m_right->m_colour= BLACK;
+			}
+			if (cur->m_parent != m_head && cur->m_parent->m_colour == RED)
+			{
+				Rbb(cur);
+			}
+		}
+		void Brb(RBTreeNode<T> *cur)
+		{
+			if (cur->m_parent->m_left = cur)
+			{
+				Lrotate(cur);
+				cur = cur->m_parent;
+				Rrotate(cur->m_parent);
+				cur->m_left->m_colour = BLACK;
+			}
+			else
+			{
+				Rrotate(cur);
+				cur = cur->m_parent;
+				Lrotate(cur->m_parent);
+				cur->m_right->m_colour = BLACK;
+			}
+			if (cur->m_parent != m_head && cur->m_parent->m_colour == RED)
+			{
+				Rbb(cur);
+			}
+		}
+		void Rbb(RBTreeNode<T> *cur)//若执行了之一步可以直接退出
+		{
+			cur->m_parent = BLACK;
+		}
+		void Rrr(RBTreeNode<T> *cur)
+		{
+			cur->m_parent = BLACK;
+			Brr(cur);
+		}
+		void Rrb(RBTreeNode<T> *cur)
+		{
+			if (cur = cur->m_parent->m_left)
+			{
+				Lrotate(cur);
+				cur = cur->m_parent;
+				Rrotate(cur->m_parent);
+				Brr(cur);
+			}
+			else
+			{
+				Rrotate(cur);
+				cur = cur->m_parent;
+				Lrotate(cur->m_parent);
+				Brr(cur);
+			}
 		}
 
 		//以下是迭代器模块，使用内部类实现迭代器

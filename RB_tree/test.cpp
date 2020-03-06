@@ -36,6 +36,9 @@ int main()
 	//find test
 	std::cout << "Found this element:" << RB.find(34).second.m_data << ": "<<  *RB.find(34).second << std::endl;
 
+	//erase test
+
+
 	system("pause");
 	return 0;
 }
