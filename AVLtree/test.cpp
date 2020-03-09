@@ -10,8 +10,11 @@ int main()
 	av.insert(5);
 	av.insert(6);
 	av.insert(7);
+	av.insert(8);
+	av.insert(9);
+	av.insert(66);
 
-
+	av.erase(4);
 
 	return 0;
 }

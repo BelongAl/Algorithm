@@ -106,11 +106,48 @@ public:
 			return false;//没有找到
 		}
 
-		//平衡点调整
-
+		//若左子树或右子树为空，直接删除接上另一个
+		if (cur->m_left == nullptr)
+		{
+			cur = cur->m_right;
+			return true;
+		}
+		else if (cur->m_right == nullptr)
+		{
+			cur = cur->m_left;
+			return true;
+		}
+		//否则寻找前驱节点或后继节点补上去，我们在这里找后继节点
+		AVLtreeNode<T> *back = cur->m_right;
+		while (back)//寻找后继节点
+		{
+			pre = back;
+			back = back->m_left;
+		}
+		//保留交换节点的左子树
+		AVLtreeNode<T> *tmp = pre->m_parent;
+		tmp->m_left = pre->m_right;
+		//交换
+		cur->m_val = pre->m_val;
+		//删除
+		delete pre;
+		pre = nullptr;
+		//平衡因子调整调整.右边删除一个相当于左边添加了一个
+		if (tmp->m_right)
+		{
+			AdjustBlance(tmp->m_right, tmp);
+		}
+		else
+		{
+			AVLtreeNode<T> *tmpadd = new AVLtreeNode<T>(0);
+			tmp->m_right = tmpadd;
+			AdjustBlance(tmpadd, tmp);
+		}
+		return true;
 	}
 
 private:
+
 
 	void AdjustBlance(AVLtreeNode<T> *cur, AVLtreeNode<T> *pre)//pre:爷爷 cur：父亲 sun： 儿子
 	{
