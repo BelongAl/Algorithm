@@ -175,14 +175,14 @@ namespace wr
 		//删除函数
 		bool erase(T val)
 		{
-			std::pair<bool, iterator<T>>it = find(val).second;//找到删除的元素位置
+			std::pair<bool, iterator<T>>it = find(val);//找到删除的元素位置
 			if (!it.first)
 			{
 				return false;
 			}
 			RBTreeNode<T> *grand = nullptr;
 			RBTreeNode<T> *uncle = nullptr;
-			RBTreeNode<T> *dad = it.second->m_data;
+			RBTreeNode<T> *dad = it.second.m_data;
 			getgu(dad, uncle, grand);//获得叔叔节点和爷爷节点（删除的节点是爸爸）
 
 
@@ -192,18 +192,55 @@ namespace wr
 			{
 				if (dad->m_left == nullptr || dad->m_right == nullptr)
 				{
-					RBTreeNode<T> *path = dad->m_parent;
-					LockBlackNode(path);//缺黑调整
+					if (dad->m_left != nullptr)
+					{
+						if (grand->m_left == dad)
+						{
+							grand->m_left = dad->m_left;
+						}
+						else
+						{
+							grand->m_right = dad->m_left;
+						}
+						dad->m_left->m_parent = grand;
+					}
+					else if (dad->m_right != nullptr)
+					{
+						if (grand->m_left == dad)
+						{
+							grand->m_left = dad->m_right;
+						}
+						else
+						{
+							grand->m_right = dad->m_right;
+						}
+						dad->m_right->m_parent = grand;
+					}
+					else
+					{
+						if (grand->m_left == dad)
+						{
+							grand->m_left = nullptr;
+						}
+						else
+						{
+							grand->m_right = nullptr;
+						}
+					}
+
+					delete dad;
+					dad = nullptr;
+					LockBlackNode(grand);//缺黑调整
 				}
 				//需要找到代替的点
 				else
 				{
 					//首先我们需找到代替的节点
 					++it.second;
-					RBTreeNode<T> *areplace = it.second->m_data;//后继节点
+					RBTreeNode<T> *areplace = it.second.m_data;//后继节点
 					--it.second;
 					--it.second;
-					RBTreeNode<T> *preplace = it.second->m_data;//前驱节点
+					RBTreeNode<T> *preplace = it.second.m_data;//前驱节点
 
 					if (areplace->m_colour == RED || preplace->m_colour == RED)//如果被替代的是红色的，直接替换
 					{
@@ -286,10 +323,10 @@ namespace wr
 				{
 					//首先我们需找到代替的节点
 					++it.second;
-					RBTreeNode<T> *areplace = it.second->m_data;//后继节点
+					RBTreeNode<T> *areplace = it.second.m_data;//后继节点
 					--it.second;
 					--it.second;
-					RBTreeNode<T> *preplace = it.second->m_data;//前驱节点
+					RBTreeNode<T> *preplace = it.second.m_data;//前驱节点
 
 					if (areplace->m_colour == RED || preplace->m_colour == RED)//如果被替代的是红色的，直接替换
 					{
@@ -344,101 +381,112 @@ namespace wr
 		void LockBlackNode(RBTreeNode<T> *path)
 		{
 			RBTreeNode<T>* cur = path;
-			RBTreeNode<T>* pre = nullptr;
+			RBTreeNode<T>* pre = path;
+			RBTreeNode<T>* tmp = path;
 
 			//因为这条路径缺少了一个黑色节点，所以需要将其他路径均缺少一个节点
 			//我们在这里寻找他这条路径上的所有子树，将这些子树的一个黑色节点染成红色。
-			while (1)
+			bool index = true;
+			while (cur != m_head)
 			{
 				if (cur->m_left && cur->m_left != pre)//如果这条路径存在左子树，则将其左子树的一个黑色节点变红
 				{
 					//寻找其左子树的黑色节点，并将其变红
-					ChangeColor(cur->m_left);
+					index = ChangeColor(cur->m_left);
 				}
 				else if(cur->m_right && cur->m_right != pre)//如果这条路径存在右子树，则将其右子树的一个黑色节点变红
 				{
 					//寻找其右子树的黑色节点，并将其变红
-					ChangeColor(cur->m_right);
+					index = ChangeColor(cur->m_right);
 				}
-				pre = cur;
+				if (!index)
+				{
+					break;
+				}
+				cur = pre;//cur的更新存在问题
 				cur = cur->m_parent;
 			}
 			m_head->m_parent->m_colour = BLACK;
 		}
 
 		//寻找黑色节点，然后调用调整函数
-		void ChangeColor(RBTreeNode<T> *cur)
+		bool ChangeColor(RBTreeNode<T> *cur)
 		{
+			bool index = true;
 			if (cur->m_colour == BLACK)
 			{
 				//找到了黑色节点，进行调整
 				cur->m_colour = RED;
-				AdjustColor(cur);
-				return;
+				bool index = AdjustColor(cur);
+				if (!index)
+				{
+					return false;
+				}
+				return true;;
 			}
 			else
 			{
 				if (cur->m_left)
 				{
-					ChangeColor(cur->m_left);
+					bool index = ChangeColor(cur->m_left);
 				}
 				if (cur->m_right)
 				{
-					ChangeColor(cur->m_right);
+					bool index = ChangeColor(cur->m_right);
 				}
 			}
+			return index;
 		}
 
-		void AdjustColor(RBTreeNode<T> *cur)
+		bool AdjustColor(RBTreeNode<T> *cur)
 		{
 			//找到其左右节点的颜色
 			COLOR leftcolor = BLACK;
 			COLOR rightcolor = BLACK;
-			if (cur->m_left->m_colour == RED)
+			if (cur->m_left && cur->m_left->m_colour == RED)
 			{
 				leftcolor = RED;
 			}
-			if (cur->m_right->m_colour == RED)
+			if (cur->m_right &&cur->m_right->m_colour == RED)
 			{
 				rightcolor = RED;
 			}
-			
-			//函数指针数组，存放这六种处理方式
-			void((*adjust)[6])(RBTreeNode<T> *) = { Bbb,Brr,Brb,Rbb,Rrr,Rrb };
 
 			//如果父亲节点为黑色
-			if (cur->m_parent->m_left == BLACK)
+			if (cur->m_parent->m_colour == BLACK)
 			{
 				if (leftcolor == BLACK && rightcolor == BLACK)
 				{
 					//方法一
-					adjust[0](cur);
+					Bbb(cur);
 				}
 				else if (leftcolor == RED && rightcolor == RED)
 				{
 					//方法二
-					adjust[1](cur);
+					Brr(cur);
 				}
 				else
 				{
-					adjust[2](cur);//方法三
+					Brb(cur);//方法三
 				}
 			}
 			else
 			{
 				if (leftcolor == BLACK && rightcolor == BLACK)
 				{
-					adjust[4](cur);//方法四
+					Rbb(cur);//方法四
+					return false;
 				}
 				else if (leftcolor == RED && rightcolor == RED)
 				{
-					adjust[5](cur);//方法五
+					Rrr(cur);//方法五
 				}
 				else
 				{
-					adjust[6](cur);//方法六
+					Rrb(cur);//方法六
 				}
 			}
+			return true;
 		}
 
 		//六种处理函数
@@ -446,7 +494,7 @@ namespace wr
 		{}
 		void Brr(RBTreeNode<T> *cur)
 		{
-			if (cur->m_parent->m_left = cur)
+			if (cur->m_parent->m_left == cur)
 			{
 				Lrotate(cur);
 				cur = cur->m_parent;
@@ -488,26 +536,43 @@ namespace wr
 		}
 		void Rbb(RBTreeNode<T> *cur)//若执行了之一步可以直接退出
 		{
-			cur->m_parent = BLACK;
+			cur->m_parent->m_colour = BLACK;
 		}
 		void Rrr(RBTreeNode<T> *cur)
 		{
-			cur->m_parent = BLACK;
+			cur->m_parent->m_colour = BLACK;
 			Brr(cur);
 		}
 		void Rrb(RBTreeNode<T> *cur)
 		{
+			COLOR leftcolor = BLACK;
+			COLOR rightcolor = BLACK;
+			if (cur->m_left && cur->m_left->m_colour == RED)
+			{
+				leftcolor = RED;
+			}
+			if (cur->m_right &&cur->m_right->m_colour == RED)
+			{
+				rightcolor = RED;
+			}
+
 			if (cur = cur->m_parent->m_left)
 			{
-				Lrotate(cur);
-				cur = cur->m_parent;
+				if (rightcolor == RED)
+				{
+					Lrotate(cur);
+					cur = cur->m_parent;
+				}
 				Rrotate(cur->m_parent);
 				Brr(cur);
 			}
 			else
 			{
-				Rrotate(cur);
-				cur = cur->m_parent;
+				if (leftcolor == RED)
+				{
+					Rrotate(cur);
+					cur = cur->m_parent;
+				}
 				Lrotate(cur->m_parent);
 				Brr(cur);
 			}
@@ -547,7 +612,14 @@ namespace wr
 
 			iterator<T> operator++()//使用中序从小到大的结论进行++，每次记录遍历过的最大值
 			{
-
+				if (m_data->m_colour == RED)
+				{
+					std::cout << "RED:";
+				}
+				else
+				{
+					std::cout << "BLACK:";
+				}
 				if (m_data == m_ithead->m_right)
 				{
 					m_data = m_ithead;

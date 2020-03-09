@@ -34,10 +34,16 @@ int main()
 	}
 
 	//find test
-	std::cout << "Found this element:" << RB.find(34).second.m_data << ": "<<  *RB.find(34).second << std::endl;
+	//std::cout << "Found this element:" << RB.find(34).second.m_data << ": "<<  *RB.find(34).second << std::endl;
 
 	//erase test
+	RB.erase(4);
 
+	//iterator test
+	for (auto &e : RB)
+	{
+		std::cout << e << std::endl;
+	}
 
 	system("pause");
 	return 0;
