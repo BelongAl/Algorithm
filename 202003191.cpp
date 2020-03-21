@@ -81,6 +81,85 @@ public:
 		}
 	}
 };
+
+class Solution1 {
+	void Dfs(vector<vector<char>>& board, int row, int col)
+	{
+		m_sign[make_pair(row, col)] = 1;
+		board[row][col] = '#';
+		if (row < board.size() - 1 && board[row + 1][col] == 'O')
+		{
+			Dfs(board, row + 1, col);
+		}
+		if (row > 0 && board[row - 1][col] == 'O')
+		{
+			Dfs(board, row - 1, col);
+		}
+		if (col < board[0].size() - 1 && board[row][col + 1] == 'O')
+		{
+			Dfs(board, row, col + 1);
+		}
+		if (col > 0 && board[row][col - 1] == 'O')
+		{
+			Dfs(board, row, col - 1);
+		}
+	}
+
+	map<pair<int, int>, int> m_sign;
+
+public:
+	void solve(vector<vector<char>>& board) {
+		//第一步将边界上的O和其联通的O打上标记
+		int rowSize = board.size();
+		if (rowSize <= 2)
+		{
+			return;
+		}
+		int colSize = board[0].size();
+
+		for (int i = 0; i < rowSize; i++)
+		{
+			if (board[i][0] == 'O')
+			{
+				Dfs(board, i, 0);
+			}
+			if (board[i][colSize - 1] == 'O')
+			{
+				Dfs(board, i, colSize - 1);
+			}
+		}
+
+		for (int i = 0; i < colSize; i++)
+		{
+			if (board[0][i] == 'O')
+			{
+				Dfs(board, 0, i);
+			}
+			if (board[rowSize - 1][i] == 'O')
+			{
+				Dfs(board, rowSize - 1, i);
+			}
+		}
+
+
+		for (int i = 0; i < rowSize; i++)
+		{
+			for (int j = 0; j < colSize; j++)
+			{
+				if (board[i][j] == 'O')
+				{
+					board[i][j] = 'X';
+				}
+			}
+		}
+
+		for (auto e : m_sign)
+		{
+			board[e.first.first][e.first.second] = 'O';
+		}
+
+	}
+};
 int main()
 {
 
