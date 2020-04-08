@@ -36,4 +36,5 @@ int main()
   int ret = Find(str);
   printf("%d\n",ret);
   return 0;
+  
 }
